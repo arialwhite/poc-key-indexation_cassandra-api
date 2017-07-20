@@ -4,7 +4,10 @@ const express = require('express');
 const cassandra = require('cassandra-driver');
 const stringify = require('json-stringify');
 
-const client = new cassandra.Client({ contactPoints: ['cassandra'], keyspace: 'kafka_topics' });
+const HOST = process.env.CASSANDRA_HOST || 'cassandra';
+const TOPIC = process.env.CASSANDRA_TARGET_TOPIC || 'small_topic';
+
+const client = new cassandra.Client({ contactPoints: [HOST], keyspace: 'kafka_topics' });
 
 const app = express();
 app.get('/', (req, res) => {
@@ -12,8 +15,8 @@ app.get('/', (req, res) => {
 
   client.connect()
   .then(function () {
-    return color? client.execute('SELECT * FROM small_topic WHERE key = ?', [ color ]) :
-                  client.execute('SELECT * FROM small_topic') ;
+    return color? client.execute(`SELECT * FROM ${TOPIC}  WHERE key = ?`, [ color ]) :
+                  client.execute(`SELECT * FROM ${TOPIC}`) ;
   })
   .then(function (result) {
     res.send(
